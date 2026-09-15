@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demostración Patrón Strategy - Calculadora de Envíos y Descuentos</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="badge">Patrones de Diseño de Software</div>
+            <h1>Calculadora de Envíos & Descuentos</h1>
+            <p class="subtitle">Demostración Interactiva del <strong>Patrón Strategy (Estrategia)</strong> para la Universidad</p>
+        </header>
+
+        <!-- Main Grid -->
+        <main class="grid-layout">
+            <!-- Panel Izquierdo: Configuración e Inyección de Estrategias -->
+            <section class="card config-panel">
+                <h2>1. Parámetros de la Orden</h2>
+
+                <div class="form-group">
+                    <label for="subtotal">Subtotal de la Compra ($ ARS):</label>
+                    <input type="number" id="subtotal" value="45000" min="1000" step="1000">
+                </div>
+
+                <div class="form-group">
+                    <label for="weight">Peso del Paquete (kg):</label>
+                    <input type="number" id="weight" value="4.5" min="0.1" step="0.5">
+                </div>
+
+                <div class="form-group">
+                    <label for="distance">Distancia de Entrega (km):</label>
+                    <input type="number" id="distance" value="12" min="1" step="1">
+                </div>
+
+                <h2>2. Estrategia de Envío (Logística)</h2>
+                <div class="strategy-options" id="shipping-options">
+                    <label class="strategy-card active" data-shipping="correo">
+                        <input type="radio" name="shipping" value="correo" checked>
+                        <div class="icon">📦</div>
+                        <div class="info">
+                            <strong>Correo Argentino</strong>
+                            <small>Estándar Nacional ($1.2k base + $350/kg + $8/km | -50% en +$50k)</small>
+                        </div>
+                    </label>
+
+                    <label class="strategy-card" data-shipping="andreani">
+                        <input type="radio" name="shipping" value="andreani">
+                        <div class="icon">🚚</div>
+                        <div class="info">
+                            <strong>Andreani</strong>
+                            <small>Privado Express ($2.5k base + Tramos Peso + $12/km)</small>
+                        </div>
+                    </label>
+
+                    <label class="strategy-card" data-shipping="pedidosya">
+                        <input type="radio" name="shipping" value="pedidosya">
+                        <div class="icon">🛵</div>
+                        <div class="info">
+                            <strong>PedidosYa</strong>
+                            <small>Urbano Inmediato ($800 base + $150/km | Max 15km)</small>
+                        </div>
+                    </label>
+                </div>
+
+                <h2>3. Estrategia de Descuento (Cliente)</h2>
+                <div class="strategy-options" id="discount-options">
+                    <label class="strategy-card active" data-discount="regular">
+                        <input type="radio" name="discount" value="regular" checked>
+                        <div class="icon">👤</div>
+                        <div class="info">
+                            <strong>Cliente Regular</strong>
+                            <small>0% descuento base (3% de bonificación en compras >= $100,000)</small>
+                        </div>
+                    </label>
+
+                    <label class="strategy-card" data-discount="wholesale">
+                        <input type="radio" name="discount" value="wholesale">
+                        <div class="icon">🏬</div>
+                        <div class="info">
+                            <strong>Cliente Mayorista</strong>
+                            <small>15% descuento base (20% en compras >= $80,000)</small>
+                        </div>
+                    </label>
+
+                    <label class="strategy-card" data-discount="vip">
+                        <input type="radio" name="discount" value="vip">
+                        <div class="icon">👑</div>
+                        <div class="info">
+                            <strong>Cliente VIP</strong>
+                            <small>25% descuento fijo + $1,000 extra de regalo (en +$30,000)</small>
+                        </div>
+                    </label>
+                </div>
+            </section>
+
+            <!-- Panel Derecho: Resultados, UML e Inspector de Código -->
+            <section class="card display-panel">
+                <!-- Tabs para la presentación -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="results">📊 Calculadora en Vivo</button>
+                    <button class="tab-btn" data-tab="uml">📐 Diagrama UML</button>
+                    <button class="tab-btn" data-tab="code">💻 Código de la Estrategia</button>
+                </div>
+
+                <!-- Tab 1: Resultados del Contexto -->
+                <div class="tab-content active" id="tab-results">
+                    <div class="results-grid">
+                        <div class="res-card">
+                            <span class="res-title">Subtotal Original</span>
+                            <span class="res-value" id="res-subtotal">$45.000,00</span>
+                        </div>
+                        <div class="res-card highlight-discount">
+                            <span class="res-title">Descuento Aplicado</span>
+                            <span class="res-value" id="res-discount">-$0,00</span>
+                            <small id="res-discount-name">Cliente Regular</small>
+                        </div>
+                        <div class="res-card">
+                            <span class="res-title">Subtotal Neto</span>
+                            <span class="res-value" id="res-net">$45.000,00</span>
+                        </div>
+                        <div class="res-card highlight-shipping">
+                            <span class="res-title">Costo de Envío</span>
+                            <span class="res-value" id="res-shipping">+$1.436,00</span>
+                            <small id="res-shipping-name">Correo Argentino</small>
+                        </div>
+                    </div>
+
+                    <div class="total-box">
+                        <span>TOTAL FINAL CALCULADO POR EL CONTEXTO</span>
+                        <div class="total-amount" id="res-total">$46.436,00 ARS</div>
+                    </div>
+
+                    <div class="pattern-explanation" id="explanation-box">
+                        <h3>💡 Fundamento Arquitectónico: Patrón Strategy</h3>
+                        <p>El objeto <code>OrderCalculator</code> (Contexto) delega el cálculo a las interfaces <code>IShippingStrategy</code> e <code>IDiscountStrategy</code>. Al modificar los campos de la izquierda, se inyectan nuevas instancias en el contexto <strong>sin alterar una sola línea del código principal ni usar condicionales if/else</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Diagrama UML -->
+                <div class="tab-content" id="tab-uml">
+                    <div class="uml-container">
+                        <div class="uml-box context-node">
+                            <h4>OrderCalculator (Context)</h4>
+                            <hr>
+                            <p>+ set_shipping_strategy(s)</p>
+                            <p>+ set_discount_strategy(d)</p>
+                            <p>+ calculate_order()</p>
+                        </div>
+                        <div class="uml-arrow">➔ delegates ➔</div>
+                        <div class="uml-group">
+                            <div class="uml-box interface-node">
+                                <h4>&lt;&lt;interface&gt;&gt;<br>IShippingStrategy</h4>
+                                <hr>
+                                <p>+ calculate(weight, dist, val)</p>
+                            </div>
+                            <div class="uml-box interface-node">
+                                <h4>&lt;&lt;interface&gt;&gt;<br>IDiscountStrategy</h4>
+                                <hr>
+                                <p>+ calculate_discount(subtotal)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="uml-strategies-list">
+                        <div class="strategy-tag active-tag" id="tag-ship">Estrategia Envío Activa: CorreoArgentinoShipping</div>
+                        <div class="strategy-tag active-tag" id="tag-disc">Estrategia Descuento Activa: RegularUserDiscount</div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Inspector de Código -->
+                <div class="tab-content" id="tab-code">
+                    <div class="code-selector">
+                        <button class="code-btn active" data-code="context">OrderCalculator.py (Contexto)</button>
+                        <button class="code-btn" data-code="ship">ShippingStrategy.py (Estrategia Activa)</button>
+                        <button class="code-btn" data-code="disc">DiscountStrategy.py (Estrategia Activa)</button>
+                    </div>
+                    <pre class="code-viewer"><code id="code-content"># Selecciona una pestaña para ver el código Python</code></pre>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>Proyecto para Exposición de Patrones de Diseño | Antigravity AI &amp; Universidad</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
