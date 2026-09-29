@@ -1,26 +1,29 @@
 """
-Paquete de Estrategias para la Calculadora de Envíos y Descuentos.
+Paquete de Estrategias para el Planificador de Rutas (Google Maps).
 """
 
-from src.strategies.base import IShippingStrategy, IDiscountStrategy
-from src.strategies.shipping_strategies import (
-    CorreoArgentinoShipping,
-    AndreaniShipping,
-    PedidosYaShipping,
+from src.strategies.base import IRouteStrategy, IOptimizationStrategy, RouteResult
+from src.strategies.route_strategies import (
+    CarRouteStrategy,
+    PublicTransitRouteStrategy,
+    BicycleRouteStrategy,
+    WalkingRouteStrategy,
 )
-from src.strategies.discount_strategies import (
-    RegularUserDiscount,
-    WholesaleDiscount,
-    VipUserDiscount,
+from src.strategies.optimization_strategies import (
+    FastestTimeStrategy,
+    ShortestDistanceStrategy,
+    EconomicStrategy,
 )
 
 __all__ = [
-    "IShippingStrategy",
-    "IDiscountStrategy",
-    "CorreoArgentinoShipping",
-    "AndreaniShipping",
-    "PedidosYaShipping",
-    "RegularUserDiscount",
-    "WholesaleDiscount",
-    "VipUserDiscount",
+    "IRouteStrategy",
+    "IOptimizationStrategy",
+    "RouteResult",
+    "CarRouteStrategy",
+    "PublicTransitRouteStrategy",
+    "BicycleRouteStrategy",
+    "WalkingRouteStrategy",
+    "FastestTimeStrategy",
+    "ShortestDistanceStrategy",
+    "EconomicStrategy",
 ]

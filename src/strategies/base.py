@@ -1,60 +1,84 @@
 """
-Módulo de Interfaces Base para el Patrón Strategy.
+Módulo de Interfaces Base para el Patrón Strategy (Navegación / Google Maps).
 
-Define los contratos abstractos (Interfaces en lenguajes orientados a objetos)
-que todas las estrategias concretas de envío y descuento deben implementar.
+Define los contratos abstractos (Interfaces) que todas las estrategias
+concretas de ruta y optimización deben implementar.
 """
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import List
 
 
-class IShippingStrategy(ABC):
+@dataclass
+class RouteResult:
     """
-    Interfaz / Abstracción para las Estrategias de Envío (Logística).
+    Estructura de datos que contiene el resultado del cálculo de una ruta.
+    """
+    transport_name: str
+    distance_km: float
+    duration_minutes: float
+    monetary_cost_ars: float
+    calories_burned: float
+    co2_saved_kg: float
+    estimated_steps: int
+    waypoints: List[str]
+    notes: str
+
+
+class IRouteStrategy(ABC):
+    """
+    Interfaz / Abstracción principal para las Estrategias de Transporte (Medio de Locomoción).
 
     En el patrón Strategy, esta interfaz declara la operación común para
-    todos los algoritmos de cálculo de envío soportados.
+    todos los algoritmos de navegación soportados (Auto, Colectivo, Bici, A Pie).
     """
 
     @property
     @abstractmethod
-    def name(self) -> str:
-        """Nombre descriptivo de la logística."""
+    def transport_type(self) -> str:
+        """Nombre descriptivo del medio de transporte."""
+        pass
+
+    @property
+    @abstractmethod
+    def icon(self) -> str:
+        """Icono representativo (Emoji o SVG)."""
         pass
 
     @abstractmethod
-    def calculate(self, weight_kg: float, distance_km: float, order_value: float) -> float:
+    def calculate_route(self, origin: str, destination: str, distance_km: float) -> RouteResult:
         """
-        Calcula el costo del envío en base a los parámetros proporcionados.
+        Calcula la ruta en base a los parámetros del trayecto.
 
-        :param weight_kg: Peso del paquete en kilogramos.
-        :param distance_km: Distancia de entrega en kilómetros.
-        :param order_value: Valor total de los productos de la compra.
-        :return: Costo final del servicio de envío en ARS ($).
+        :param origin: Punto de partida (ej: "Centro").
+        :param destination: Punto de llegada (ej: "Universidad").
+        :param distance_km: Distancia base en kilómetros.
+        :return: Instancia de RouteResult con tiempos, costos e itinerario.
         """
         pass
 
 
-class IDiscountStrategy(ABC):
+class IOptimizationStrategy(ABC):
     """
-    Interfaz / Abstracción para las Estrategias de Descuento (Categoría de Usuario).
+    Interfaz / Abstracción secundaria para las Estrategias de Optimización (Criterio de Navegación).
 
-    Declara el método común para aplicar beneficios o descuentos sobre
-    el valor de la orden o subtotal.
+    Declara el método común para ajustar la duración o costo según el criterio
+    elegido por el usuario (Más Rápida, Más Corta, Económica).
     """
 
     @property
     @abstractmethod
-    def category_name(self) -> str:
-        """Nombre de la categoría de usuario."""
+    def criterion_name(self) -> str:
+        """Nombre del criterio de optimización."""
         pass
 
     @abstractmethod
-    def calculate_discount(self, subtotal: float) -> float:
+    def apply_optimization(self, base_result: RouteResult) -> RouteResult:
         """
-        Calcula el monto a descontar según la estrategia de descuento.
+        Ajusta la ruta calculada según el criterio de optimización.
 
-        :param subtotal: Subtotal de la compra (antes de descuentos).
-        :return: Monto descontado en ARS ($).
+        :param base_result: Resultado base calculado por la estrategia de transporte.
+        :return: RouteResult optimizado.
         """
         pass

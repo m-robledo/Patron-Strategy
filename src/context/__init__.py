@@ -1,7 +1,7 @@
 """
-Paquete Contexto de la Calculadora.
+Paquete Contexto del Navegador.
 """
 
-from src.context.calculator_context import OrderCalculator
+from src.context.navigator_context import NavigatorContext
 
-__all__ = ["OrderCalculator"]
+__all__ = ["NavigatorContext"]

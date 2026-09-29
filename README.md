@@ -1,12 +1,12 @@
-# 📐 Calculadora de Envíos y Descuentos — Patrón Strategy (Diseño de Software)
+# 🗺️ Planificador de Rutas (Google Maps / Waze) — Patrón Strategy (Diseño de Software)
 
-Proyecto práctico y educativo enfocado en la implementación del **Patrón de Diseño Comportamental Strategy (Estrategia)** en Python. Diseñado como material didáctico para una **presentación universitaria**, incluye arquitectura limpia, pruebas unitarias automatizadas, ejecutable de consola CLI e interfaz web interactiva para exposición visual.
+Proyecto práctico y educativo enfocado en la implementación del **Patrón de Diseño Comportamental Strategy (Estrategia)** en Python, aplicado al dominio de navegación inteligente y planificación de rutas estilo **Google Maps**. Diseñado como material didáctico para una **presentación universitaria**, incluye arquitectura limpia, pruebas unitarias automatizadas, ejecutable de consola CLI e interfaz web GPS interactiva en vivo.
 
 ---
 
-## 🎯 Objetivo de la Presentación Universitario
+## 🎯 Objetivo de la Presentación Universitaria
 
-Demostrar cómo el patrón **Strategy** permite intercambiar algoritmos de **cálculo de envíos por logística** (*Correo Argentino, Andreani, PedidosYa*) y **descuentos por categoría de usuario** (*Regular, Mayorista, VIP*) en tiempo de ejecución, respetando el principio de **Abierto/Cerrado (Open/Closed Principle)** del paradigma SOLID.
+Demostrar cómo el patrón **Strategy** permite intercambiar los algoritmos de **navegación por medio de transporte** (*Automóvil, Transporte Público/Colectivo, Bicicleta, A Pie*) y los **criterios de optimización** (*Más Rápida, Más Corta, Económica*) en tiempo de ejecución, respetando el principio de **Abierto/Cerrado (Open/Closed Principle)** del paradigma SOLID.
 
 ---
 
@@ -14,56 +14,61 @@ Demostrar cómo el patrón **Strategy** permite intercambiar algoritmos de **cá
 
 ```mermaid
 classDiagram
-    class OrderCalculator {
-        -IShippingStrategy _shipping_strategy
-        -IDiscountStrategy _discount_strategy
-        +set_shipping_strategy(IShippingStrategy strategy)
-        +set_discount_strategy(IDiscountStrategy strategy)
-        +calculate_order(subtotal, weight_kg, distance_km) Dict
+    class NavigatorContext {
+        -IRouteStrategy _route_strategy
+        -IOptimizationStrategy _optimization_strategy
+        +set_route_strategy(IRouteStrategy strategy)
+        +set_optimization_strategy(IOptimizationStrategy strategy)
+        +plan_route(origin, destination, distance_km) RouteResult
     }
 
-    class IShippingStrategy {
+    class IRouteStrategy {
         <<interface>>
-        +name: str
-        +calculate(weight_kg, distance_km, order_value) float
+        +transport_type: str
+        +icon: str
+        +calculate_route(origin, destination, distance_km) RouteResult
     }
 
-    class IDiscountStrategy {
+    class IOptimizationStrategy {
         <<interface>>
-        +category_name: str
-        +calculate_discount(subtotal) float
+        +criterion_name: str
+        +apply_optimization(base_result) RouteResult
     }
 
-    class CorreoArgentinoShipping {
-        +calculate()
+    class CarRouteStrategy {
+        +calculate_route()
     }
-    class AndreaniShipping {
-        +calculate()
+    class PublicTransitRouteStrategy {
+        +calculate_route()
     }
-    class PedidosYaShipping {
-        +calculate()
+    class BicycleRouteStrategy {
+        +calculate_route()
     }
-
-    class RegularUserDiscount {
-        +calculate_discount()
-    }
-    class WholesaleDiscount {
-        +calculate_discount()
-    }
-    class VipUserDiscount {
-        +calculate_discount()
+    class WalkingRouteStrategy {
+        +calculate_route()
     }
 
-    OrderCalculator --> IShippingStrategy : delega
-    OrderCalculator --> IDiscountStrategy : delega
+    class FastestTimeStrategy {
+        +apply_optimization()
+    }
+    class ShortestDistanceStrategy {
+        +apply_optimization()
+    }
+    class EconomicStrategy {
+        +apply_optimization()
+    }
 
-    IShippingStrategy <|.. CorreoArgentinoShipping
-    IShippingStrategy <|.. AndreaniShipping
-    IShippingStrategy <|.. PedidosYaShipping
+    NavigatorContext --> IRouteStrategy : delega
+    NavigatorContext --> IOptimizationStrategy : delega
 
-    IDiscountStrategy <|.. RegularUserDiscount
-    IDiscountStrategy <|.. WholesaleDiscount
-    IDiscountStrategy <|.. VipUserDiscount
+    IRouteStrategy <|.. CarRouteStrategy
+    IRouteStrategy <|.. PublicTransitRouteStrategy
+    IRouteStrategy <|.. BicycleRouteStrategy
+    IRouteStrategy <|.. WalkingRouteStrategy
+
+    IOptimizationStrategy <|.. FastestTimeStrategy
+    IOptimizationStrategy <|.. ShortestDistanceStrategy
+    IOptimizationStrategy <|.. EconomicStrategy
 ```
 
 ---
@@ -75,60 +80,55 @@ Calculadora-envios-descuentos/
 ├── src/
 │   ├── strategies/
 │   │   ├── __init__.py
-│   │   ├── base.py                 <-- IShippingStrategy e IDiscountStrategy (Interfaces)
-│   │   ├── shipping_strategies.py  <-- Correo Argentino, Andreani, PedidosYa
-│   │   └── discount_strategies.py  <-- Regular, Mayorista, VIP
+│   │   ├── base.py                     <-- IRouteStrategy e IOptimizationStrategy (Interfaces)
+│   │   ├── route_strategies.py         <-- Auto, Colectivo, Bici, A Pie
+│   │   └── optimization_strategies.py  <-- Más Rápida, Más Corta, Económica
 │   ├── context/
 │   │   ├── __init__.py
-│   │   └── calculator_context.py   <-- OrderCalculator (El Contexto)
-│   └── main.py                     <-- Punto de entrada / Menú CLI / Lanzador Web
-├── web/                            <-- Interfaz gráfica web interactiva para la defensa
+│   │   └── navigator_context.py        <-- NavigatorContext (El Contexto)
+│   └── main.py                         <-- Punto de entrada / Menú CLI / Lanzador Web GPS
+├── web/                                <-- Dashboard Web GPS estilo Google Maps Dark Mode
 │   ├── index.html
 │   ├── styles.css
 │   └── app.js
 ├── tests/
 │   ├── __init__.py
-│   └── test_strategies.py          <-- Pruebas unitarias completas (12 tests)
+│   └── test_route_strategies.py        <-- Pruebas unitarias completas
 ├── .gitignore
 ├── LICENSE
-└── README.md
+└── README.md                           <-- Documentación con Diagrama UML y Guión
 ```
 
 ---
 
 ## 💡 Algoritmos de las Estrategias Implementadas
 
-### 🚚 Estrategias de Envío (`IShippingStrategy`)
-1. **Correo Argentino** (`CorreoArgentinoShipping`):
-   - Tarifa base: `$1.200 ARS`.
-   - Costo variable: `$350 ARS/kg` + `$8 ARS/km`.
-   - **Bonificación**: 50% de descuento en el costo de envío si la compra supera los `$50.000 ARS`.
-2. **Andreani** (`AndreaniShipping`):
-   - Tarifa base fija: `$2.500 ARS` (incluye seguro de carga).
-   - Tramos por peso: `hasta 5kg (+$500)`, `5 a 15kg (+$1.200)`, `>15kg (+$2.500)`.
-   - Costo por distancia: `$12 ARS/km`.
-3. **PedidosYa** (`PedidosYaShipping`):
-   - Servicio urbano de corta distancia (límite máximo: `15 km`).
-   - Tarifa base: `$800 ARS` + `$150 ARS/km`.
-   - Recargo por paquete pesado: `+$600 ARS` si el peso supera los `5 kg`.
+### 🚗 Estrategias de Transporte (`IRouteStrategy`)
+1. **Automóvil** (`CarRouteStrategy`):
+   - Velocidad promedio: `60 km/h` (vías rápidas y autopista).
+   - Costos: Combustible (`$180 ARS/km`) + Peaje (`$800 ARS` si dist > 10km).
+2. **Transporte Público** (`PublicTransitRouteStrategy`):
+   - Velocidad promedio: `25 km/h` + `8 min` de espera promedio en estación.
+   - Costo: Tarifa SUBE (`$450 ARS base + $30 ARS/km`).
+   - Ecológico: Ahorro de `~0.14 kg CO2/km`.
+3. **Bicicleta** (`BicycleRouteStrategy`):
+   - Velocidad promedio: `15 km/h`. Red de ciclovías protegidas.
+   - Costo: `$0 ARS`. Salud & CO2: `30 kcal/km` y `0.21 kg CO2/km` ahorrados.
+4. **A Pie / Peatonal** (`WalkingRouteStrategy`):
+   - Velocidad promedio: `5 km/h`. Pasajes peatonales y contramanos.
+   - Costo: `$0 ARS`. Salud: `~1.350 pasos/km` y `55 kcal/km`.
 
-### 👤 Estrategias de Descuento (`IDiscountStrategy`)
-1. **Cliente Regular** (`RegularUserDiscount`):
-   - Descuento base: `0%`.
-   - Premio por fidelidad: `3%` de descuento en compras mayores a `$100.000 ARS`.
-2. **Cliente Mayorista** (`WholesaleDiscount`):
-   - Descuento base: `15%`.
-   - Descuento por volumen: `20%` en compras mayores a `$80.000 ARS`.
-3. **Cliente VIP** (`VipUserDiscount`):
-   - Descuento exclusivo: `25%` fijo.
-   - Regalo adicional: Cupón de `+$1.000 ARS` bonificados en compras superiores a `$30.000 ARS`.
+### ⚡ Estrategias de Optimización (`IOptimizationStrategy`)
+1. **Ruta Más Rápida** (`FastestTimeStrategy`): Prioriza el menor tiempo estimado (ETA) reduciendo un 10% el tiempo de viaje con onda verde.
+2. **Ruta Más Corta** (`ShortestDistanceStrategy`): Prioriza el menor recorrido en kilómetros reduciendo un 5% la distancia con pasajes directos.
+3. **Ruta Económica** (`EconomicStrategy`): Elimina o bonifica peajes y gastos monetarios.
 
 ---
 
 ## 🚀 Guía de Ejecución
 
 ### 1. Ejecutar las Pruebas Unitarias
-Para validar que todas las estrategias y el contexto funcionan correctamente:
+Para validar que todas las estrategias y el navegador funcionan correctamente:
 ```bash
 python -m unittest discover -s tests
 ```
@@ -139,23 +139,22 @@ Para correr la demostración por consola con menú explicativo:
 python src/main.py
 ```
 
-### 3. Abrir la Interfaz Web Visual para la Presentación
+### 3. Abrir la Interfaz Web Visual GPS para la Presentación
 Desde el menú interactivo de `main.py` selecciona la opción **3**, o inicia un servidor local en la carpeta `web/`:
-- Se abrirá automáticamente una dashboard web moderna con glassmorphism, simulación en vivo, diagrama UML e inspector de código en tiempo real para proyectar en el aula.
+- Se abrirá automáticamente un navegador GPS interactivo en vivo estilo Google Maps Dark Mode con mapa simulado, itinerario de waypoints, diagrama UML e inspector de código en tiempo real.
 
 ---
 
 ## 🎤 Guión Sugerido para la Exposición en la Facultad
 
-1. **Introducción al Problema**:
-   > *"En una tienda electrónica, calcular el costo final implica combinar la empresa de logística y el tipo de cliente. Si usáramos estructuras condicionales (if/else o switch), el código terminaría acoplado, difícil de mantener y violando el principio de responsabilidad única."*
+1. **Introducción al Ejemplo Clásico**:
+   > *"Google Maps necesita calcular rutas según el medio de transporte elegido por el usuario (Auto, Colectivo, Bici, A Pie). Cada transporte utiliza algoritmos de cálculo completamente distintos para tiempos, velocidad y costos."*
 
-2. **Solución con el Patrón Strategy**:
-   > *"Separamos los algoritmos de cálculo de la clase cliente. Definimos dos abstracciones: `IShippingStrategy` e `IDiscountStrategy`. El objeto `OrderCalculator` actúa como el Contexto y delega los cálculos."*
+2. **Por qué usar el Patrón Strategy**:
+   > *"Si pusiéramos todo en un único método con condicionales `if/else`, violaríamos la Responsabilidad Única y el código sería frágil. Con Strategy, el `NavigatorContext` (el Navegador) delega el cálculo a interfaces abstractas (`IRouteStrategy` e `IOptimizationStrategy`)."*
 
 3. **Demostración de Flexibilidad (Runtime)**:
-   > *"Al cambiar de empresa de envío o tipo de cliente, simplemente inyectamos una instancia diferente al contexto mediante `set_shipping_strategy()` o `set_discount_strategy()`. El método `calculate_order()` ejecuta el cálculo sin cambiar su código."*
+   > *"Al tocar un botón en la interfaz, el navegador inyecta una nueva estrategia concreta en tiempo de ejecución. El método `plan_route()` calcula el itinerario completo sin modificar una sola línea de su código fuente."*
 
-4. **Beneficios Principales**:
-   - **Mantenibilidad**: Agregar una nueva empresa (ej. *OCASA*) implica solo crear una nueva clase que implemente `IShippingStrategy`.
-   - **Testabilidad**: Cada estrategia se prueba de manera aislada con sus propios tests unitarios.
+4. **Extensibilidad SOLID (Open/Closed Principle)**:
+   > *"Si mañana quisiéramos agregar el transporte en Moto o Monopatín Eléctrico, simplemente creamos una clase nueva que implemente `IRouteStrategy` sin alterar las clases existentes."*

@@ -1,8 +1,8 @@
 """
-Punto de Entrada y Demostración CLI para la Facultad.
+Punto de Entrada y Demostración CLI para la Facultad (Google Maps / Navegación).
 
 Demuestra el funcionamiento del Patrón Strategy intercambiando dinámicamente
-algoritmos de Envío y Descuento en el objeto Contexto (OrderCalculator).
+medios de transporte y criterios de optimización en el Navegador (NavigatorContext).
 """
 
 import os
@@ -15,125 +15,134 @@ import threading
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.strategies import (
-    CorreoArgentinoShipping,
-    AndreaniShipping,
-    PedidosYaShipping,
-    RegularUserDiscount,
-    WholesaleDiscount,
-    VipUserDiscount,
+    CarRouteStrategy,
+    PublicTransitRouteStrategy,
+    BicycleRouteStrategy,
+    WalkingRouteStrategy,
+    FastestTimeStrategy,
+    ShortestDistanceStrategy,
+    EconomicStrategy,
 )
-from src.context import OrderCalculator
+from src.context import NavigatorContext
 
 
 def print_banner():
-    print("=" * 70)
-    print("      DEMOSTRACIÓN DEL PATRÓN STRATEGY (DISEÑO DE SOFTWARE)")
-    print("          Calculadora de Envíos y Descuentos - Facultad")
-    print("=" * 70)
+    print("=" * 75)
+    print("       PLANIFICADOR DE RUTAS ESTILO GOOGLE MAPS - PATRÓN STRATEGY")
+    print("               Demostración para la Facultad / Universidad")
+    print("=" * 75)
 
 
 def run_automated_demo():
     print("\n[ESCENARIO DE DEMOSTRACIÓN AUTOMATIZADA]")
-    print("Datos de la Orden de Compra:")
-    subtotal = 45000.0  # ARS
-    weight_kg = 4.5     # kg
-    distance_km = 12.0  # km
-    print(f" - Subtotal Productos: ${subtotal:,.2f} ARS")
-    print(f" - Peso del Paquete:   {weight_kg} kg")
-    print(f" - Distancia Destino:  {distance_km} km\n")
+    origin = "Obelisco, CABA"
+    destination = "Ciudad Universitaria, UBA"
+    distance_km = 12.5
 
-    # Instanciamos el Contexto
-    calculator = OrderCalculator()
+    print(f"Origen:      {origin}")
+    print(f"Destino:     {destination}")
+    print(f"Distancia:   {distance_km} km\n")
 
-    # Colección de Estrategias
-    shipping_strategies = [
-        CorreoArgentinoShipping(),
-        AndreaniShipping(),
-        PedidosYaShipping(),
+    navigator = NavigatorContext()
+
+    transport_strategies = [
+        CarRouteStrategy(),
+        PublicTransitRouteStrategy(),
+        BicycleRouteStrategy(),
+        WalkingRouteStrategy(),
     ]
 
-    discount_strategies = [
-        RegularUserDiscount(),
-        WholesaleDiscount(),
-        VipUserDiscount(),
+    optimization_strategies = [
+        FastestTimeStrategy(),
+        ShortestDistanceStrategy(),
+        EconomicStrategy(),
     ]
 
-    print("-" * 70)
-    print(f"{'Logística (Envío)':<32} | {'Categoría Cliente':<18} | {'Total Final ($)':<12}")
-    print("-" * 70)
+    print("-" * 75)
+    print(f"{'Medio de Transporte':<35} | {'Criterio':<22} | {'Duración (ETA)':<12}")
+    print("-" * 75)
 
-    # Probamos combinaciones intercambiando estrategias en tiempo de ejecución
-    for shipping in shipping_strategies:
-        calculator.shipping_strategy = shipping  # Cambio de Estrategia A
-        for discount in discount_strategies:
-            calculator.discount_strategy = discount  # Cambio de Estrategia B
+    for transport in transport_strategies:
+        navigator.route_strategy = transport
+        for opt in optimization_strategies:
+            navigator.optimization_strategy = opt
+            route = navigator.plan_route(origin, destination, distance_km)
             
-            res = calculator.calculate_order(subtotal, weight_kg, distance_km)
-            print(f"{res['shipping_name'][:30]:<32} | {res['discount_name']:<18} | ${res['total_amount']:>10,.2f}")
+            label = f"{transport.icon} {transport.transport_type[:28]}"
+            print(f"{label:<35} | {opt.criterion_name:<22} | {route.duration_minutes:>6.1f} min")
 
-    print("-" * 70)
-    print("\n-> Observación clave para la presentación:")
-    print("   El método OrderCalculator.calculate_order() NUNCA cambió ni necesitó 'if/else'")
-    print("   para evaluar qué empresa de envío o categoría de cliente se utilizó.")
+    print("-" * 75)
+    print("\n-> Observación para la exposición en la facultad:")
+    print("   El método NavigatorContext.plan_route() ejecuta el cálculo delegando")
+    print("   sin evaluar un solo 'if/else' de transportes ni criterios de optimización.")
 
 
 def run_interactive_cli():
     print("\n[MODO INTERACTIVO EN CONSOLA]")
+    origin = input("Punto de Partida (ej. Centro): ").strip() or "Centro"
+    destination = input("Punto de Llegada (ej. Facultad): ").strip() or "Facultad"
     try:
-        subtotal = float(input("Ingrese el Subtotal de la compra ($ ARS): "))
-        weight_kg = float(input("Ingrese el Peso del paquete (kg): "))
-        distance_km = float(input("Ingrese la Distancia de envío (km): "))
+        distance_km = float(input("Distancia en Kilómetros (ej. 8.5): ") or "8.5")
     except ValueError:
-        print("Error: Por favor ingrese números válidos.")
+        print("Error: Ingrese una distancia numérica válida.")
         return
 
-    print("\n--- Seleccione la Logística de Envío (Estrategia de Envío) ---")
-    print("1. Correo Argentino (Económico / Nacional)")
-    print("2. Andreani (Privado / Express)")
-    print("3. PedidosYa (Urbano / Inmediato <= 15km)")
-    ship_choice = input("Opción (1-3): ").strip()
+    print("\n--- Seleccione el Medio de Transporte (Estrategia de Ruta) ---")
+    print("1. 🚗 Automóvil (Autopista / Combustible + Peajes)")
+    print("2. 🚌 Transporte Público (Colectivo / Subte / Tarjeta SUBE)")
+    print("3. 🚲 Bicicleta (Red de Ciclovías / $0 costo / Saludable)")
+    print("4. 🚶 A Pie (Peatonal / $0 costo / Contador de pasos)")
+    t_choice = input("Opción (1-4): ").strip()
 
-    shipping_map = {
-        "1": CorreoArgentinoShipping(),
-        "2": AndreaniShipping(),
-        "3": PedidosYaShipping(),
+    t_map = {
+        "1": CarRouteStrategy(),
+        "2": PublicTransitRouteStrategy(),
+        "3": BicycleRouteStrategy(),
+        "4": WalkingRouteStrategy(),
     }
-    selected_shipping = shipping_map.get(ship_choice, CorreoArgentinoShipping())
+    selected_transport = t_map.get(t_choice, CarRouteStrategy())
 
-    print("\n--- Seleccione la Categoría del Usuario (Estrategia de Descuento) ---")
-    print("1. Cliente Regular (Sin descuento / 3% en +$100k)")
-    print("2. Cliente Mayorista (15% desc / 20% en +$80k)")
-    print("3. Cliente VIP (25% desc + $1,000 en +$30k)")
-    disc_choice = input("Opción (1-3): ").strip()
+    print("\n--- Seleccione el Criterio (Estrategia de Optimización) ---")
+    print("1. ⚡ Ruta Más Rápida (Menor Tiempo)")
+    print("2. 📏 Ruta Más Corta (Menor Distancia)")
+    print("3. 💰 Ruta Económica (Ahorro Monetario)")
+    o_choice = input("Opción (1-3): ").strip()
 
-    discount_map = {
-        "1": RegularUserDiscount(),
-        "2": WholesaleDiscount(),
-        "3": VipUserDiscount(),
+    o_map = {
+        "1": FastestTimeStrategy(),
+        "2": ShortestDistanceStrategy(),
+        "3": EconomicStrategy(),
     }
-    selected_discount = discount_map.get(disc_choice, RegularUserDiscount())
+    selected_opt = o_map.get(o_choice, FastestTimeStrategy())
 
-    # Inyección de estrategias en el Contexto
-    context = OrderCalculator(
-        shipping_strategy=selected_shipping,
-        discount_strategy=selected_discount,
+    navigator = NavigatorContext(
+        route_strategy=selected_transport,
+        optimization_strategy=selected_opt,
     )
 
     try:
-        result = context.calculate_order(subtotal, weight_kg, distance_km)
+        result = navigator.plan_route(origin, destination, distance_km)
 
-        print("\n" + "=" * 50)
-        print("          RESULTADO DE LA CALCULADORA")
-        print("=" * 50)
-        print(f"Subtotal Original:   ${result['subtotal']:>12,.2f} ARS")
-        print(f"Descuento ({result['discount_name']}): -${result['discount_amount']:>10,.2f} ARS")
-        print(f"Subtotal Neto:       ${result['net_subtotal']:>12,.2f} ARS")
-        print(f"Envío ({result['shipping_name']}): +${result['shipping_cost']:>10,.2f} ARS")
-        print("-" * 50)
-        print(f"TOTAL A PAGAR:       ${result['total_amount']:>12,.2f} ARS")
-        print("=" * 50)
+        print("\n" + "=" * 60)
+        print(f"        ITINERARIO CALCULADO POR EL NAVEGADOR")
+        print("=" * 60)
+        print(f"Transporte:       {selected_transport.icon} {result.transport_name}")
+        print(f"Criterio:         {selected_opt.criterion_name}")
+        print(f"Distancia Total:  {result.distance_km} km")
+        print(f"Duración (ETA):   {result.duration_minutes} minutos")
+        print(f"Costo Monetario:  ${result.monetary_cost_ars:,.2f} ARS")
+        print(f"Calorías:         {result.calories_burned} kcal")
+        print(f"CO2 Ahorrado:     {result.co2_saved_kg} kg CO2")
+        print(f"Pasos Estimados:  {result.estimated_steps} pasos")
+        print("-" * 60)
+        print("Puntos del Trayecto (Waypoints):")
+        for i, step in enumerate(result.waypoints, 1):
+            print(f"  {i}. {step}")
+        print("-" * 60)
+        print(f"Notas del GPS:    {result.notes}")
+        print("=" * 60)
     except Exception as e:
-        print(f"\n[Error de Ejecución en Estrategia]: {e}")
+        print(f"\n[Error de Ejecución]: {e}")
 
 
 def launch_web_ui(port=8000):
@@ -144,8 +153,8 @@ def launch_web_ui(port=8000):
     httpd = HTTPServer(("localhost", port), handler)
     
     url = f"http://localhost:{port}"
-    print(f"\n[+] Servidor Web iniciado en {url}")
-    print("    Abriendo el navegador para la presentación visual...")
+    print(f"\n[+] Servidor Web GPS iniciado en {url}")
+    print("    Abriendo el navegador para la presentación visual estilo Google Maps...")
     
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     webbrowser.open(url)
@@ -155,9 +164,9 @@ def main():
     print_banner()
     while True:
         print("\nMenú Principal:")
-        print("1. Ejecutar Demostración Automatizada (Matriz de Estrategias)")
-        print("2. Ejecutar Simulación Interactiva (CLI)")
-        print("3. Abrir Interfaz Gráfica Web para la Presentación")
+        print("1. Demostración Automatizada (Matriz de Transportes y Criterios)")
+        print("2. Simulación Interactiva por Consola (CLI)")
+        print("3. Abrir Interfaz Gráfica Web GPS para la Presentación")
         print("4. Salir")
         
         choice = input("\nSeleccione una opción (1-4): ").strip()
